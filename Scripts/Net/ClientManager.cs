@@ -59,11 +59,18 @@ public class ClientManager: BaseManager
     {
         facade.HandleResponse(actionCode, data);
     }
-    public void SendRequest(RequestCode requestCode, ActionCode actionCode, string data)
-    {
-        byte[] bytes = Message.PackData(requestCode, actionCode, data);
-        clientSocket.Send(bytes);
+
+    public void SendRequest(RequestCode requestCode, ActionCode actionCode,
+    string data) {
+        JsonDataRequestEntity dataEntity = new JsonDataRequestEntity();
+        dataEntity.requestCode = (int)requestCode;
+        dataEntity.actionCode = (int)actionCode;
+        dataEntity.data = data;
+        string jsonData =  JsonUtility.ToJson(dataEntity); 
+        byte[] bytes = MessageHandler.PackData(jsonData);
+        _clientSocket.Send(bytes);
     }
+    
     public override void OnDestroy()
     {
         base.OnDestroy();

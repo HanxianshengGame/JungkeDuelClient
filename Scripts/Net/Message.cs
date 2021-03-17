@@ -29,7 +29,32 @@ public class Message  {
     /// <summary>
     /// 解析数据或者叫做读取数据
     /// </summary>
-    public void ReadMessage(int newDataAmount, Action<ActionCode, string> processDataCallback)
+    // public void ReadMessage(int newDataAmount, Action<ActionCode, string> processDataCallback)
+    // {
+    //     startIndex += newDataAmount;
+    //     while (true)
+    //     {
+    //         if (startIndex <= 4) return;
+    //         int count = BitConverter.ToInt32(data, 0);
+    //         if ((startIndex - 4) >= count)
+    //         {
+    //             //Console.WriteLine(startIndex);
+    //             //Console.WriteLine(count);
+    //             //string s = Encoding.UTF8.GetString(data, 4, count);
+    //             //Console.WriteLine("解析出来一条数据：" + s);
+    //             ActionCode actionCode = (ActionCode)BitConverter.ToInt32(data, 4);
+    //             string s = Encoding.UTF8.GetString(data, 8, count - 4);
+    //             processDataCallback(actionCode, s);
+    //             Array.Copy(data, count + 4, data, 0, startIndex - 4 - count);
+    //             startIndex -= (count + 4);
+    //         }
+    //         else
+    //         {
+    //             break;
+    //         }
+    //     }
+    // }
+        public void ReadMessage(int newDataAmount, Action<ActionCode, string> processDataCallback)
     {
         startIndex += newDataAmount;
         while (true)
@@ -38,13 +63,10 @@ public class Message  {
             int count = BitConverter.ToInt32(data, 0);
             if ((startIndex - 4) >= count)
             {
-                //Console.WriteLine(startIndex);
-                //Console.WriteLine(count);
-                //string s = Encoding.UTF8.GetString(data, 4, count);
-                //Console.WriteLine("解析出来一条数据：" + s);
-                ActionCode actionCode = (ActionCode)BitConverter.ToInt32(data, 4);
-                string s = Encoding.UTF8.GetString(data, 8, count - 4);
-                processDataCallback(actionCode, s);
+                // ActionCode actionCode = (ActionCode)BitConverter.ToInt32(data, 4);
+                string jsonData = Encoding.UTF8.GetString(data, 4, count);
+                JsonDataResonseEntity dataEntity = JsonUtility.FromJson<JsonDataResonseEntity>(jsonData);
+                processDataCallback((ActionCode)dataEntity.actionCode, dataEntity.data);
                 Array.Copy(data, count + 4, data, 0, startIndex - 4 - count);
                 startIndex -= (count + 4);
             }
@@ -63,17 +85,26 @@ public class Message  {
     //    byte[] newBytes = dataAmountBytes.Concat(requestCodeBytes).ToArray<byte>();//Concat(dataBytes);
     //    return newBytes.Concat(dataBytes).ToArray<byte>();
     //}
-    public static byte[] PackData(RequestCode requestData,ActionCode actionCode, string data)
+    // public static byte[] PackData(RequestCode requestData,ActionCode actionCode, string data)
+    // {
+    //     byte[] requestCodeBytes = BitConverter.GetBytes((int)requestData);
+    //     byte[] actionCodeBytes = BitConverter.GetBytes((int)actionCode);
+    //     byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+    //     int dataAmount = requestCodeBytes.Length + dataBytes.Length + actionCodeBytes.Length;
+    //     byte[] dataAmountBytes = BitConverter.GetBytes(dataAmount);
+    //     //byte[] newBytes = dataAmountBytes.Concat(requestCodeBytes).ToArray<byte>();//Concat(dataBytes);
+    //     //return newBytes.Concat(dataBytes).ToArray<byte>();
+    //     return dataAmountBytes.Concat(requestCodeBytes).ToArray<byte>()
+    //         .Concat(actionCodeBytes).ToArray<byte>()
+    //         .Concat(dataBytes).ToArray<byte>();
+    // }
+    public static byte[] PackData(string jsonData)
     {
-        byte[] requestCodeBytes = BitConverter.GetBytes((int)requestData);
-        byte[] actionCodeBytes = BitConverter.GetBytes((int)actionCode);
-        byte[] dataBytes = Encoding.UTF8.GetBytes(data);
-        int dataAmount = requestCodeBytes.Length + dataBytes.Length + actionCodeBytes.Length;
+        // byte[] requestCodeBytes = BitConverter.GetBytes((int)requestData);
+        // byte[] actionCodeBytes = BitConverter.GetBytes((int)actionCode);
+        byte[] dataBytes = Encoding.UTF8.GetBytes(jsonData);
+        int dataAmount =  dataBytes.Length;
         byte[] dataAmountBytes = BitConverter.GetBytes(dataAmount);
-        //byte[] newBytes = dataAmountBytes.Concat(requestCodeBytes).ToArray<byte>();//Concat(dataBytes);
-        //return newBytes.Concat(dataBytes).ToArray<byte>();
-        return dataAmountBytes.Concat(requestCodeBytes).ToArray<byte>()
-            .Concat(actionCodeBytes).ToArray<byte>()
-            .Concat(dataBytes).ToArray<byte>();
+        return dataAmountBytes.Concat(dataBytes).ToArray<byte>();
     }
 }
